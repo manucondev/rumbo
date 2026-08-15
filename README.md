@@ -36,7 +36,8 @@ Como es una función pura, está cubierta por tests: `npm run test`.
 npm install && npm run setup && npm run dev
 ```
 
-El PIN de desarrollo está en `.env` (`APP_PIN`, por defecto `1234`).
+El PIN de entrada lo eliges tú en `.env` (`APP_PIN`). Que el de local no sea el mismo que
+el de producción: si son iguales, cualquier cosa que documentes sobre uno vale para el otro.
 
 Comandos útiles:
 
