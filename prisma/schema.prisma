@@ -1,0 +1,108 @@
+// Rumbo — esquema de datos.
+//
+// Nota de portabilidad: no se usan `enum` ni `Json` a proposito, porque SQLite
+// no los soporta. Asi el mismo esquema vale para el SQLite de desarrollo y para
+// el Postgres de Supabase en produccion cambiando solo el `provider`.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// Un frente abierto: RSNA, TensorFlow, busqueda de empleo, master...
+model Project {
+  id   String @id @default(cuid())
+  name String
+  /// Hex, para los chips de color de la UI.
+  color String @default("#6366f1")
+  /// Objetivo de dedicacion semanal en minutos. 0 = sin objetivo.
+  weeklyTargetMin Int      @default(0)
+  /// 1 alta - 2 media - 3 baja
+  priority        Int      @default(2)
+  archived        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  tasks           Task[]
+
+  @@index([archived])
+}
+
+model Task {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title       String
+  notes       String?
+  estimateMin Int       @default(30)
+  dueDate     DateTime?
+  /// 1 alta - 2 media - 3 baja
+  importance  Int       @default(2)
+  /// PENDING | DOING | DONE | DROPPED  (ver TaskStatus en lib/types.ts)
+  status      String    @default("PENDING")
+
+  /// Subtareas. Si una tarea tiene hijas, el planner planifica las hijas.
+  parentId String?
+  parent   Task?   @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children Task[]  @relation("Subtasks")
+
+  /// Cuantas veces se ha aplazado. Sube el score para que no se pudra.
+  postponedCount Int @default(0)
+
+  createdAt DateTime  @default(now())
+  doneAt    DateTime?
+  blocks    Block[]
+
+  @@index([projectId])
+  @@index([status])
+  @@index([parentId])
+}
+
+/// Un dia planificado. `date` es "YYYY-MM-DD" en Europe/Madrid (string a
+/// proposito: evita el off-by-one de UTC en serverless).
+model Day {
+  id          String    @id @default(cuid())
+  date        String    @unique
+  capacityMin Int
+  /// 1..5, se rellena al cerrar el dia.
+  energy      Int?
+  note        String?
+  closedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  blocks      Block[]
+}
+
+/// Un hueco del dia asignado a una tarea.
+model Block {
+  id    String @id @default(cuid())
+  dayId String
+  day   Day    @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  plannedMin Int
+  actualMin  Int    @default(0)
+  sortOrder  Int
+  /// PLANNED | DONE | PARTIAL | SKIPPED  (ver BlockStatus en lib/types.ts)
+  status     String @default("PLANNED")
+  /// Por que el planner eligio esta tarea. Se muestra en la UI.
+  reason     String @default("")
+
+  @@index([dayId])
+  @@index([taskId])
+}
+
+/// Fila unica (id = 1) con la configuracion global.
+model Settings {
+  id Int @id @default(1)
+  /// Minutos disponibles por dia de la semana, de domingo a sabado, separados
+  /// por comas. String en vez de Json por portabilidad con SQLite.
+  capacityByWeekday String @default("240,120,120,120,120,90,240")
+  timezone          String @default("Europe/Madrid")
+  /// Hora local a la que se genera el plan y sale el aviso.
+  planHourLocal     Int    @default(7)
+}
