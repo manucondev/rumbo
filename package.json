@@ -11,7 +11,11 @@
     "test": "vitest run",
     "setup": "prisma migrate dev && prisma db seed",
     "seed": "prisma db seed",
+    "migrar": "prisma migrate dev && prisma generate",
     "iconos": "node scripts/gen-icons.mjs",
+    "telegram:webhook": "node scripts/telegram-webhook.mjs",
+    "captura": "node --import tsx --conditions=react-server scripts/probar-captura.mts",
+    "replanificar": "node --import tsx --conditions=react-server scripts/replanificar-hoy.mts",
     "verificar": "node --import tsx --conditions=react-server scripts/verificar.mts"
   },
   "dependencies": {

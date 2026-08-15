@@ -109,11 +109,47 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<app>.vercel.app/api/cron/p
 El cron no es imprescindible: `ensureDayPlan()` es idempotente y la pantalla Hoy la llama
 al entrar, así que si el cron falla el plan se genera igual cuando abres la app.
 
-## Pendiente (Fase 3)
+## Captura por texto
 
-Capa de IA opcional, que se activa sola si existe `ANTHROPIC_API_KEY`:
+Escribes en cristiano lo que llevas entre manos y sale convertido en frentes y tareas, con
+sus horas semanales, estimaciones y plazos. Entiende cosas como «al menos una hora al día»
+(7 h/semana) o «de aquí a un mes» (fecha absoluta), y reutiliza los frentes que ya existen
+en vez de duplicarlos.
 
-- **Desglosar** una tarea grande en subtareas de ≤60 min con criterio de terminado.
+Funciona en dos sitios, y en los dos **enseña primero lo que ha entendido y no crea nada
+hasta que lo confirmas**:
+
+- **Web**: `/capturar`, con enlace desde la pantalla de Tareas.
+- **Telegram**: le escribes al bot y contesta con botones de Crear / Descartar.
+
+Se activa sola si hay `GEMINI_API_KEY` (gratis) u `OPENAI_API_KEY`. Sin ninguna de las dos,
+la pantalla lo dice y el resto de la app sigue funcionando igual.
+
+Nada de lo que devuelve el modelo se cree a pies juntillas: `lib/borrador.ts` recorta
+títulos, acota estimaciones, valida fechas y pone techo a cuántas cosas puede crear de
+golpe. Está cubierto por tests.
+
+Probar la interpretación desde la terminal, sin escribir en la base de datos:
+
+```bash
+npm run captura -- "el curso de langchain, algunos dias si y otros no, para dentro de un mes"
+```
+
+### Registrar el webhook de Telegram
+
+Una sola vez, y de nuevo si cambia el dominio o el secreto:
+
+```bash
+npm run telegram:webhook
+```
+
+Usa `APP_URL` y `TELEGRAM_WEBHOOK_SECRET`. Con `-- estado` se consulta cómo está y con
+`-- borrar` se quita. El webhook no pasa por la cookie de sesión: se autentica con la
+cabecera `X-Telegram-Bot-Api-Secret-Token` y solo atiende al chat autorizado.
+
+## Pendiente
+
+- **Desglosar** una tarea grande en subtareas con IA (a mano ya se puede).
 - **Replanificar hablando** («hoy estoy reventado» → el día se rehace con lo ligero).
 - **Revisión semanal**: patrones de aplazamiento y si tus estimaciones son fantasía.
 

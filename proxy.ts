@@ -15,9 +15,10 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Todo protegido menos la pantalla de entrada, los estaticos y el cron
-  // (que se autentica por su cabecera Authorization, no por cookie).
+  // Todo protegido menos la pantalla de entrada, los estaticos y las dos rutas
+  // que traen su propia autenticacion en cabecera en vez de cookie: el cron
+  // (Authorization) y el webhook de Telegram (X-Telegram-Bot-Api-Secret-Token).
   matcher: [
-    "/((?!entrar|api/cron|_next/static|_next/image|favicon.ico|manifest.json|icon-).*)",
+    "/((?!entrar|api/cron|api/telegram|_next/static|_next/image|favicon.ico|manifest.json|icon-).*)",
   ],
 };

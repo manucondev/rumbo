@@ -96,6 +96,18 @@ model Block {
   @@index([taskId])
 }
 
+/// Borrador de una captura por texto, a la espera de que se confirme.
+/// Hace falta porque el `callback_data` de un boton de Telegram no pasa de 64
+/// bytes: por ahi solo viaja el id, y el contenido se guarda aqui.
+model Draft {
+  id        String   @id @default(cuid())
+  /// El Borrador serializado en JSON (String por portabilidad con SQLite).
+  payload   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 /// Fila unica (id = 1) con la configuracion global.
 model Settings {
   id Int @id @default(1)

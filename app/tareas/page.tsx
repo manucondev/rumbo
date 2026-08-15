@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 
 import { QuickAdd, type ProjectOption } from "@/components/quick-add";
 import { TaskRow, type TaskView } from "@/components/task-row";
@@ -58,7 +59,15 @@ export default async function TareasPage() {
           </Link>
         </div>
       ) : (
-        <QuickAdd projects={options} />
+        <>
+          <QuickAdd projects={options} />
+          <Link
+            href="/capturar"
+            className="btn-ghost w-full border-dashed text-muted"
+          >
+            <Sparkles size={15} /> Soltar varias cosas en texto
+          </Link>
+        </>
       )}
 
       {projects.map((project) => {

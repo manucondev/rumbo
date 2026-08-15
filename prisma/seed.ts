@@ -1,6 +1,12 @@
-// Semilla con los frentes reales de Manu. Es idempotente: se puede volver a
-// lanzar sin duplicar nada. Los objetivos semanales suman 15 h, el techo de
-// dedicacion declarado.
+// Los frentes reales de Manu y sus objetivos semanales.
+//
+// Es idempotente y ademas actualiza: si cambias aqui un objetivo o un color y
+// vuelves a lanzarlo, se aplica sin duplicar nada. Las tareas se crean solo si
+// no existe ya una con el mismo titulo en ese frente, asi que no pisa lo que
+// hayas escrito tu.
+//
+// A proposito NO archiva los frentes que falten de esta lista: si no, cada
+// `npm run seed` te archivaria todo lo que hubieras creado desde la app.
 
 import "dotenv/config";
 
@@ -15,12 +21,25 @@ const adapter = url.startsWith("file:")
   : new PrismaPg({ connectionString: url });
 const db = new PrismaClient({ adapter });
 
+// Objetivos semanales: 6 + 7 + 4 + 2 + 1 = 20 h.
 const PROJECTS = [
   {
-    key: "RSNA",
+    name: "byCualia",
+    color: "#10b981",
+    weeklyTargetMin: 420, // 7 h — una hora al dia
+    priority: 1,
+    tasks: [
+      {
+        title: "Definir en que consiste el trabajo diario de byCualia",
+        estimateMin: 20,
+        importance: 1,
+      },
+    ],
+  },
+  {
     name: "RSNA Kaggle",
     color: "#6366f1",
-    weeklyTargetMin: 480, // 8 h
+    weeklyTargetMin: 360, // 6 h
     priority: 1,
     tasks: [
       { title: "Explorar el dataset y los DICOM", estimateMin: 90, importance: 1 },
@@ -31,37 +50,52 @@ const PROJECTS = [
         importance: 1,
         dueDate: "2026-10-15",
       },
-      { title: "Envio valido que supere el baseline", estimateMin: 60, importance: 1, dueDate: "2026-10-22" },
+      {
+        title: "Envio valido que supere el baseline",
+        estimateMin: 60,
+        importance: 1,
+        dueDate: "2026-10-22",
+      },
     ],
   },
   {
-    key: "TF",
-    name: "TensorFlow",
-    color: "#f59e0b",
-    weeklyTargetMin: 120, // 2 h
-    priority: 3,
+    name: "Curso de LangChain",
+    color: "#a855f7",
+    weeklyTargetMin: 240, // 4 h — para acabarlo en un mes
+    priority: 2,
     tasks: [
-      { title: "Replicar en Keras el ultimo ejercicio de PyTorch", estimateMin: 60, importance: 2 },
+      {
+        title: "Avanzar en el curso de LangChain",
+        estimateMin: 600,
+        importance: 2,
+        dueDate: "2026-09-15",
+      },
     ],
   },
   {
-    key: "EMPLEO",
-    name: "Empleo",
-    color: "#10b981",
-    weeklyTargetMin: 180, // 3 h
-    priority: 1,
+    name: "Ofertas de trabajo",
+    color: "#0ea5e9",
+    weeklyTargetMin: 120, // 2 h
+    priority: 2,
     tasks: [
       { title: "Actualizar el CV con el TFG y el RSNA", estimateMin: 45, importance: 1 },
       { title: "Tanda de 3 candidaturas", estimateMin: 45, importance: 2 },
     ],
   },
   {
-    key: "MASTER",
-    name: "Master",
-    color: "#0ea5e9",
-    weeklyTargetMin: 120, // 2 h
+    name: "Chambergo",
+    color: "#f59e0b",
+    weeklyTargetMin: 60, // 1 h — esta bloqueado, no tiene sentido pedirle mas
     priority: 2,
-    tasks: [{ title: "Revisar el material pendiente", estimateMin: 60, importance: 2 }],
+    tasks: [
+      // Lo unico que se puede hacer hasta que llegue la clave.
+      { title: "Conseguir la clave de Endesa", estimateMin: 15, importance: 1 },
+      {
+        title: "Terminar Chambergo con los datos de Endesa",
+        estimateMin: 120,
+        importance: 2,
+      },
+    ],
   },
 ];
 
@@ -72,24 +106,33 @@ async function main() {
     create: {
       id: 1,
       // dom, lun, mar, mie, jue, vie, sab
-      capacityByWeekday: "240,120,120,120,120,90,240",
+      capacityByWeekday: "240,180,180,180,180,120,240",
       timezone: "Europe/Madrid",
-      planHourLocal: 7,
+      planHourLocal: 9,
     },
   });
 
   for (const p of PROJECTS) {
     const existing = await db.project.findFirst({ where: { name: p.name } });
-    const project =
-      existing ??
-      (await db.project.create({
-        data: {
-          name: p.name,
-          color: p.color,
-          weeklyTargetMin: p.weeklyTargetMin,
-          priority: p.priority,
-        },
-      }));
+
+    const project = existing
+      ? await db.project.update({
+          where: { id: existing.id },
+          data: {
+            color: p.color,
+            weeklyTargetMin: p.weeklyTargetMin,
+            priority: p.priority,
+            archived: false,
+          },
+        })
+      : await db.project.create({
+          data: {
+            name: p.name,
+            color: p.color,
+            weeklyTargetMin: p.weeklyTargetMin,
+            priority: p.priority,
+          },
+        });
 
     for (const t of p.tasks) {
       const dup = await db.task.findFirst({
@@ -108,8 +151,15 @@ async function main() {
     }
   }
 
-  const [projects, tasks] = await Promise.all([db.project.count(), db.task.count()]);
-  console.log(`Semilla lista: ${projects} proyectos, ${tasks} tareas.`);
+  const activos = await db.project.findMany({
+    where: { archived: false },
+    orderBy: { priority: "asc" },
+  });
+  const total = activos.reduce((s, p) => s + p.weeklyTargetMin, 0);
+  console.log(`Frentes activos (${(total / 60).toFixed(1)} h/semana):`);
+  for (const p of activos) {
+    console.log(`  ${(p.weeklyTargetMin / 60).toFixed(1).padStart(4)} h  ${p.name}`);
+  }
 }
 
 main()
