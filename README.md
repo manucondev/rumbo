@@ -83,7 +83,7 @@ lo único manual son las variables de entorno.
 
 Para las migraciones desde local hace falta además `DIRECT_URL` (puerto `:5432`).
 
-## El recordatorio de las 7:30
+## El recordatorio de las 9:30
 
 [vercel.json](vercel.json) programa `/api/cron/plan`, que genera el plan y lo manda por
 Telegram con un botón para abrir la app.
@@ -103,8 +103,8 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<app>.vercel.app/api/cron/p
 ```
 
 > **Ojo con la hora.** Vercel programa los cron en UTC y el plan Hobby solo permite
-> frecuencia diaria. `30 5 * * *` son las 07:30 en horario de verano y las 06:30 en
-> invierno. Al cambiar la hora, pasarlo a `30 6 * * *`.
+> frecuencia diaria. `30 7 * * *` son las 09:30 en horario de verano y las 08:30 en
+> invierno. Al cambiar la hora, en octubre, pasarlo a `30 8 * * *`.
 
 El cron no es imprescindible: `ensureDayPlan()` es idempotente y la pantalla Hoy la llama
 al entrar, así que si el cron falla el plan se genera igual cuando abres la app.
