@@ -1,0 +1,5 @@
+# Normaliza los finales de linea: LF en el repositorio, lo nativo en disco.
+# Sin esto, git avisa en cada commit desde Windows.
+* text=auto eol=lf
+*.png binary
+*.ico binary
