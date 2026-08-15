@@ -3,7 +3,6 @@
   "crons": [
     {
       "path": "/api/cron/plan",
-      "comment": "Vercel programa en UTC: 05:30 son las 07:30 en horario de verano. En invierno hay que cambiarlo a '30 6 * * *'.",
       "schedule": "30 5 * * *"
     }
   ]
