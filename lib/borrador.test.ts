@@ -16,18 +16,37 @@ describe("normalizarBorrador", () => {
   });
 
   it("marca como existente el frente que ya esta, respetando su nombre", () => {
+    // Escrito en minusculas por el modelo; se guarda como esta en la base de
+    // datos para no acabar con "byCualia" y "bycualia" a la vez.
     const b = normalizarBorrador(
-      { frentes: [{ nombre: "bycualia", horasSemana: 7, prioridad: 1 }], tareas: [] },
+      {
+        frentes: [{ nombre: "bycualia", horasSemana: 7, prioridad: 1 }],
+        tareas: [{ frente: "BYCUALIA", titulo: "Sesion diaria" }],
+      },
       ["byCualia"],
     );
     expect(b.frentes).toEqual([
       { nombre: "byCualia", horasSemana: 7, prioridad: 1, nuevo: false },
     ]);
+    expect(b.tareas[0].frente).toBe("byCualia");
   });
 
   it("marca como nuevo lo que no existia", () => {
     const b = normalizarBorrador({ frentes: [{ nombre: "Chambergo" }], tareas: [] }, ["RSNA"]);
     expect(b.frentes[0]).toMatchObject({ nombre: "Chambergo", nuevo: true, horasSemana: 0 });
+  });
+
+  it("quita los frentes ya existentes a los que no apunta ninguna tarea", () => {
+    // El modelo suele devolver la lista entera de frentes existentes aunque el
+    // texto solo hable de uno; eso tapa lo que de verdad importa.
+    const b = normalizarBorrador(
+      {
+        frentes: [{ nombre: "RSNA" }, { nombre: "byCualia" }, { nombre: "Algebra" }],
+        tareas: [{ frente: "byCualia", titulo: "Sesion diaria" }],
+      },
+      ["RSNA", "byCualia"],
+    );
+    expect(b.frentes.map((f) => f.nombre).sort()).toEqual(["Algebra", "byCualia"]);
   });
 
   it("no duplica un frente mencionado varias veces", () => {

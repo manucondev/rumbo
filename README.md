@@ -6,6 +6,11 @@ Tú sueltas tareas en la bandeja y dices cuántas horas quieres dedicarle a cada
 semana. Cada mañana el sistema decide qué toca hoy, te lo manda al móvil y tú solo vas
 marcando. Al cerrar el día, lo que no hiciste alimenta el plan de mañana.
 
+| Hoy | Captura por texto | Semana |
+|:--:|:--:|:--:|
+| <img src="docs/hoy.png" width="260" alt="Pantalla Hoy con los bloques del día"> | <img src="docs/capturar.png" width="260" alt="Texto libre convertido en frentes y tareas"> | <img src="docs/semana.png" width="260" alt="Horas objetivo contra horas reales por frente"> |
+| El plan del día, con el motivo de cada bloque | Escribes en cristiano; confirmas antes de crear | Lo que dijiste que harías contra lo que hiciste |
+
 ## Cómo decide qué toca hoy
 
 No hay magia ni LLM en el plan diario: es un motor de reglas determinista
@@ -46,7 +51,8 @@ Comandos útiles:
 | `npm run test` | Tests del motor de planificación |
 | `npm run verificar` | Ejercita el bucle completo contra una BD desechable (solo con el `provider` en `sqlite`) |
 | `npm run seed` | Vuelve a sembrar frentes y tareas (es idempotente) |
-| `npm run iconos` | Regenera los iconos PWA de `public/` |
+| `npm run iconos` | Regenera los iconos (pestaña, PWA y iPhone) |
+| `npm run capturas` | Regenera las capturas de `docs/` (necesita el servidor levantado) |
 
 ## Base de datos
 

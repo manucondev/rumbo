@@ -131,5 +131,14 @@ export function normalizarBorrador(
     }
   }
 
-  return { frentes, tareas };
+  // El modelo tiende a devolver la lista entera de frentes existentes aunque el
+  // texto solo hable de uno. Un frente que ya existe y al que no apunta ninguna
+  // tarea no aporta nada (aplicarlo no haria nada), y ademas tapa lo que si
+  // importa. Los que son nuevos se quedan aunque vengan sin tareas: crearlos es
+  // justo lo que se ha pedido.
+  const conTareas = new Set(tareas.map((t) => t.frente));
+  return {
+    frentes: frentes.filter((f) => f.nuevo || conTareas.has(f.nombre)),
+    tareas,
+  };
 }

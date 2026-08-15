@@ -13,6 +13,7 @@
     "seed": "prisma db seed",
     "migrar": "prisma migrate dev && prisma generate",
     "iconos": "node scripts/gen-icons.mjs",
+    "capturas": "node scripts/capturas.mjs",
     "telegram:webhook": "node scripts/telegram-webhook.mjs",
     "captura": "node --import tsx --conditions=react-server scripts/probar-captura.mts",
     "replanificar": "node --import tsx --conditions=react-server scripts/replanificar-hoy.mts",
