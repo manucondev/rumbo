@@ -43,28 +43,30 @@ Comandos útiles:
 | Comando | Qué hace |
 |---|---|
 | `npm run test` | Tests del motor de planificación |
-| `npm run verificar` | Ejercita el bucle completo contra una BD desechable |
+| `npm run verificar` | Ejercita el bucle completo contra una BD desechable (solo con el `provider` en `sqlite`) |
 | `npm run seed` | Vuelve a sembrar frentes y tareas (es idempotente) |
 | `npm run iconos` | Regenera los iconos PWA de `public/` |
 
-## Pasar a producción (Supabase + Vercel)
+## Base de datos
 
-En local corre sobre SQLite. Para desplegar hace falta un Postgres, y el cambio es este:
+Postgres de Supabase, tanto en local como en producción. Hacen falta dos URLs porque
+cumplen papeles distintos:
 
-1. Crear el proyecto en [Supabase](https://supabase.com) (free, región `eu-west`).
-2. En [prisma/schema.prisma](prisma/schema.prisma), cambiar el `provider` del `datasource`
-   de `"sqlite"` a `"postgresql"`.
-3. Borrar `prisma/migrations/` y generar la migración nueva contra Supabase:
+- `DATABASE_URL` → **pooler de transacción** (`:6543`, con `?pgbouncer=true`). Lo usa la app
+  en caliente; es el que aguanta bien las conexiones efímeras de serverless.
+- `DIRECT_URL` → **pooler de sesión** (`:5432`). Lo usa la CLI de Prisma para migraciones y
+  seed, que necesitan una sesión de verdad. Prisma 7 ya no tiene `directUrl` en el schema,
+  así que la preferencia se resuelve en [prisma.config.ts](prisma.config.ts).
 
-```bash
-rm -rf prisma/migrations && npx prisma migrate dev --name init
-```
+Las dos salen del panel de Supabase: **Connect → ORM → Prisma**.
 
-4. Sembrar: `npm run seed`.
-5. Subir el repo a GitHub e importarlo en [Vercel](https://vercel.com).
+`lib/db.ts` elige el driver adapter según el esquema de la URL, así que el código serviría
+igual sobre SQLite cambiando el `provider` del schema.
 
-`lib/db.ts` ya elige el driver adapter según el esquema de la URL, así que no hay que tocar
-nada más en el código.
+## Desplegar en Vercel
+
+Subir el repo a GitHub e importarlo en [Vercel](https://vercel.com). Detecta Next.js solo;
+lo único manual son las variables de entorno.
 
 ### Variables de entorno en Vercel
 

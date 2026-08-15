@@ -10,6 +10,10 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Esto solo lo usa la CLI de Prisma (migrate, db seed, studio). Contra
+    // Supabase las migraciones tienen que ir por el pooler de sesion (5432),
+    // no por el de transaccion (6543) que usa la app en caliente.
+    // Prisma 7 no tiene `directUrl`, asi que la preferencia se hace aqui.
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });
