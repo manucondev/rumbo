@@ -66,6 +66,10 @@ export async function regeneratePlan(date: string) {
     db.task.findMany({
       where: { status: { in: ["PENDING", "DOING"] }, project: { archived: false } },
       include: { _count: { select: { children: true } } },
+      // El orden importa: cuando dos tareas empatan a puntos, buildPlan se queda
+      // con la primera. Sin `orderBy`, Postgres no garantiza un orden estable y
+      // el plan del dia bailaria en cada replanificacion sin motivo.
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     }),
     minutesPerTask(),
     minutesPerProjectThisWeek(date),
