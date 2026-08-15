@@ -13,10 +13,18 @@ function escapar(texto: string) {
   return texto.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-export async function enviarMensaje(html: string, botonUrl?: string) {
+/// Telegram rechaza los botones que apuntan a localhost o a http plano, asi que
+/// en desarrollo el mensaje sale sin boton en vez de fallar entero.
+function botonUsable(url: string | undefined): url is string {
+  return Boolean(url?.startsWith("https://") && !url.includes("localhost"));
+}
+
+export async function enviarMensaje(html: string, urlBoton?: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return { ok: false, motivo: "Telegram sin configurar" };
+
+  const botonUrl = botonUsable(urlBoton) ? urlBoton : undefined;
 
   const res = await fetch(`${API}/bot${token}/sendMessage`, {
     method: "POST",
