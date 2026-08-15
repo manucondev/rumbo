@@ -18,7 +18,12 @@ export const config = {
   // Todo protegido menos la pantalla de entrada, los estaticos y las dos rutas
   // que traen su propia autenticacion en cabecera en vez de cookie: el cron
   // (Authorization) y el webhook de Telegram (X-Telegram-Bot-Api-Secret-Token).
+  // Los iconos van fuera si o si: iOS los pide al anadir la app a la pantalla
+  // de inicio sin arrastrar la cookie, y un 307 al PIN los deja sin cargar.
+  // Ojo: Next analiza este patron en el build, asi que tiene que ser una cadena
+  // literal. Partirlo con una concatenacion deja de funcionar y pasa a
+  // proteger absolutamente todo, iconos incluidos.
   matcher: [
-    "/((?!entrar|api/cron|api/telegram|_next/static|_next/image|favicon.ico|manifest.json|icon-).*)",
+    "/((?!entrar|api/cron|api/telegram|_next/static|_next/image|favicon\\.ico|manifest\\.json|icon\\.png|apple-icon\\.png|icon-).*)",
   ],
 };
